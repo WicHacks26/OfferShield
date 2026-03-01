@@ -43,6 +43,12 @@ def generate_financial_analysis(data, total_comp, fed_tax, state_tax, fica_tax, 
         "one_year_savings_growth": "Total expected savings after 12 months.",
         "profitability_verdict": "Formal Yes/No"
       }},
+      "negotiation_suite": {{
+        "negotiation_required": "true",
+        "reasoning": "Brief formal explanation of why a counter-offer is necessary based on 2026 COL data.",
+        "formal_counter_email": "A high-level professional email requesting a 'Cost of Living Adjustment' or 'Equity Refresh' if negotiation_required is true.",
+        "verbal_talking_points": ["Point 1", "Point 2", "Point 3"]
+      }},
       "voice_scripts": {{
         "tax_and_cost_logic": "45-second script explaining why {data.location} is or isn't tax-efficient.",
         "the_bottom_line": "60-second script on if they will be richer or poorer after moving."
