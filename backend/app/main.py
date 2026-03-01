@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import OfferInput
-from utils.finance_calculator import (
+from app.schemas import OfferInput
+from app.utils.finance_calculator import (
     calculate_fica, calculate_federal_tax, 
     calculate_state_tax, calculate_risk_score
 )
-from services.gemini_service import generate_financial_analysis
-from services.voice_service import generate_voiceover # Import new service
+from app.services.gemini_service import generate_financial_analysis
+from app.services.voice_service import generate_voiceover # Import new service
 
 app = FastAPI()
 
