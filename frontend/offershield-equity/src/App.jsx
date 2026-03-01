@@ -5,6 +5,8 @@ import OfferForm from "./components/OfferForm";
 import AnalysisPanel from "./components/AnalysisPanel";
 import About from "./components/About";
 import "./App.css";
+import LoanSection from "./components/LoanSection";
+import ChatBot from "./components/ChatBot";
 
 const DEFAULT_FORM = {
   name: "Alex",
@@ -33,6 +35,7 @@ export default function App() {
 
   const formRef = useRef(null);
   const aboutRef = useRef(null);
+  const loanRef = useRef(null);
 
   const appClass = useMemo(() => {
     const cls = ["appRoot"];
@@ -79,23 +82,37 @@ export default function App() {
   }
 
   function scrollToSection(which) {
-    setActive(which);
-    const el = which === "form" ? formRef.current : aboutRef.current;
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  setActive(which);
+
+  let el = null;
+    if (which === "about") el = aboutRef.current;
+    if (which === "form") el = formRef.current;
+    if (which === "loan") el = loanRef.current;
+
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
   return (
     <div className={appClass}>
       <NavBar
-        active={active}
-        onGoForm={() => scrollToSection("form")}
-        onGoAbout={() => scrollToSection("about")}
-        highContrast={form.accessibility_high_contrast}
-        largeText={form.accessibility_large_text}
-        onToggleHighContrast={(v) => updateField("accessibility_high_contrast", v)}
-        onToggleLargeText={(v) => updateField("accessibility_large_text", v)}
-      />
+  active={active}
+    onGoAbout={() => scrollToSection("about")}
+    onGoForm={() => scrollToSection("form")}
+    onGoLoan={() => scrollToSection("loan")}
+    highContrast={form.accessibility_high_contrast}
+    largeText={form.accessibility_large_text}
+    onToggleHighContrast={(v) => updateField("accessibility_high_contrast", v)}
+    onToggleLargeText={(v) => updateField("accessibility_large_text", v)}
+  />
+
+      {/* ABOUT SECTION */}
+      <section ref={aboutRef} id="about" className="section sectionAbout">
+        <div className="container">
+          <About />
+        </div>
+      </section>
+
 
       {/* FORM SECTION */}
       <section ref={formRef} id="form" className="section sectionForm">
@@ -117,16 +134,23 @@ export default function App() {
         </div>
       </section>
 
-      {/* ABOUT SECTION */}
-      <section ref={aboutRef} id="about" className="section sectionAbout">
+      {/* LOAN SECTION */}
+      <section ref={loanRef} id="loan" className="section sectionLoan">
         <div className="container">
-          <About />
+          <LoanSection defaultSalary={form.base_salary} />
         </div>
       </section>
 
+      
+
+            {/* Chatbot Floating AI Assistant */}
+      <ChatBot />
+
       <footer className="footerNote">
-        OfferShield Equity ✦ Powered by FastAPI, Gemini, and ElevenLabs
+        Herizon ✦ Powered by FastAPI, Gemini, and ElevenLabs
       </footer>
     </div>
+
+    
   );
 }

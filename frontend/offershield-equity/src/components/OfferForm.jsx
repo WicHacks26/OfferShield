@@ -10,8 +10,23 @@ export default function OfferForm({ form, updateField, onRun, loading }) {
       </div>
 
       <div className="row2">
-        <Field label="Chosen name" value={form.name} onChange={(v) => updateField("name", v)} />
-        <Field label="Pronouns" value={form.pronouns} onChange={(v) => updateField("pronouns", v)} />
+        <Field 
+          label="Chosen name" 
+          value={form.name} 
+          onChange={(v) => updateField("name", v)} 
+        />
+
+        <Select
+          label="Pronouns"
+          value={form.pronouns}
+          onChange={(v) => updateField("pronouns", v)}
+          options={[
+            { value: "she/her", label: "She / Her" },
+            { value: "he/him", label: "He / Him" },
+            { value: "they/them", label: "They / Them" },
+            { value: "prefer_not_to_say", label: "Prefer not to say" },
+          ]}
+        />
       </div>
 
       <div className="row2">

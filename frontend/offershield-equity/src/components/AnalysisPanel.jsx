@@ -67,10 +67,10 @@ export default function AnalysisPanel({ form, result }) {
 
         <div className="analysisChips">
           <span className="chip">
-            Risk tier: <b>{riskTier}</b>
+            Safety Level: <b>{riskTier}</b>
           </span>
           <span className="chip">
-            Safety score: <b>{safetyScore}/100</b>
+            Risk score: <b>{safetyScore}/100</b>
           </span>
         </div>
       </div>
