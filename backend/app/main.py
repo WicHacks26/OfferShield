@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from app.schemas import OfferInput
-from app.utils.finance_calculator import (
+from schemas import OfferInput
+from utils.finance_calculator import (
     calculate_fica, calculate_federal_tax, 
     calculate_state_tax, calculate_risk_score
 )
-from app.services.gemini_service import generate_financial_analysis
+from services.gemini_service import generate_financial_analysis
+from services.voice_service import generate_voiceover # Import new service
 
 app = FastAPI()
 
@@ -29,8 +30,17 @@ async def analyze_offer(data: OfferInput):
         data, total_comp, fed_tax, state_tax, fica_tax, risk_score
     )
 
+    # 5. Voice Generation (New!)
+    audio_data = None
+    if data.voice_mode and "error" not in gemini_data:
+        # We use the "bottom_line" script from Gemini for the voiceover
+        voice_text = gemini_data.get("voice_scripts", {}).get("the_bottom_line", "")
+        if voice_text:
+            audio_data = generate_voiceover(voice_text)
+
     return {
         "summary": {"total_comp": total_comp, "risk_score": risk_score},
         "taxes": {"federal": fed_tax, "state": state_tax, "fica": fica_tax},
-        "ai_insights": gemini_data
+        "ai_insights": gemini_data,
+        "audio_base64": audio_data  # Frontend will play this
     }

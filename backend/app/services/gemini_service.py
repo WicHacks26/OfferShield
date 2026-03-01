@@ -1,6 +1,7 @@
 import json
 from google import genai
-from app.config import GEMINI_API_KEY, MODEL_NAME
+import time
+from config import GEMINI_API_KEY, MODEL_NAME
 
 def generate_financial_analysis(data, total_comp, fed_tax, state_tax, fica_tax, risk_score):
     client = genai.Client(api_key=GEMINI_API_KEY)
