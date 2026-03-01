@@ -1,13 +1,23 @@
 from fastapi import FastAPI
-from app.schemas import OfferInput
-from app.utils.finance_calculator import (
+from fastapi.middleware.cors import CORSMiddleware
+from schemas import OfferInput
+from utils.finance_calculator import (
     calculate_fica, calculate_federal_tax, 
     calculate_state_tax, calculate_risk_score
 )
-from app.services.gemini_service import generate_financial_analysis
-from app.services.voice_service import generate_voiceover # Import new service
+from services.gemini_service import generate_financial_analysis
+from services.voice_service import generate_voiceover # Import new service
 
 app = FastAPI()
+
+# Enable CORS so the React app can reach the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/analyze-offer")
 async def analyze_offer(data: OfferInput):
@@ -22,7 +32,8 @@ async def analyze_offer(data: OfferInput):
     
     # 3. Risk Calculation
     risk_score = calculate_risk_score(
-        data.loan, total_comp, data.savings, emergency_goal, data.equity_gap
+        0.0,  #data.loan, # loan not in her current form, defaulting to 0
+        total_comp, data.savings, emergency_goal, data.equity_gap
     )
 
     # 4. AI Insight (Pass the risk_score VARIABLE, not from data object)

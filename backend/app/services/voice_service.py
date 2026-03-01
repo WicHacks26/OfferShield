@@ -1,6 +1,6 @@
 import requests
 import base64
-from app.config import ELEVENLABS_API_KEY, VOICE_ID
+from config import ELEVENLABS_API_KEY, VOICE_ID
 
 def generate_voiceover(text: str):
     """
