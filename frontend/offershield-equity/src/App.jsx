@@ -1,4 +1,3 @@
-
 // src/App.jsx
 import React, { useMemo, useRef, useState } from "react";
 import NavBar from "./components/NavBar";
@@ -26,6 +25,11 @@ const DEFAULT_FORM = {
 export default function App() {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [active, setActive] = useState("form");
+  
+  // NEW: State to store the response from your Python Backend
+  const [result, setResult] = useState(null);
+  // NEW: State to track if the AI is currently thinking
+  const [loading, setLoading] = useState(false);
 
   const formRef = useRef(null);
   const aboutRef = useRef(null);
@@ -37,6 +41,39 @@ export default function App() {
     return cls.join(" ");
   }, [form.accessibility_high_contrast, form.accessibility_large_text]);
 
+  // NEW: The function that sends data to your FastAPI
+  async function handleRunAnalysis() {
+    setLoading(true);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/analyze-offer", {  
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          // Adding default values for fields the backend expects but aren't in the simple UI yet
+          voice_mode: true,
+          emergency_months: 6,
+          career_break_years: 0,
+          generate_negotiation: true
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Backend server error");
+      }
+
+      const data = await response.json();
+      setResult(data); // This sends the Python results into the AnalysisPanel
+    } catch (error) {
+      console.error("Integration Error:", error);
+      alert("Failed to connect to Backend. Ensure uvicorn is running on port 8000.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -45,8 +82,6 @@ export default function App() {
     setActive(which);
     const el = which === "form" ? formRef.current : aboutRef.current;
     if (!el) return;
-
-    // Important: we rely on CSS scroll-margin-top to avoid navbar overlap
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -62,17 +97,27 @@ export default function App() {
         onToggleLargeText={(v) => updateField("accessibility_large_text", v)}
       />
 
-      {/* FORM SECTION (background A) */}
+      {/* FORM SECTION */}
       <section ref={formRef} id="form" className="section sectionForm">
         <div className="container">
           <div className="grid">
-            <OfferForm form={form} updateField={updateField} />
-            <AnalysisPanel form={form} />
+            {/* Pass the new onRun function and loading state to the form */}
+            <OfferForm 
+              form={form} 
+              updateField={updateField} 
+              onRun={handleRunAnalysis} 
+              loading={loading} 
+            />
+            {/* Pass the result from the backend to the AnalysisPanel */}
+            <AnalysisPanel 
+              form={form} 
+              result={result} 
+            />
           </div>
         </div>
       </section>
 
-      {/* ABOUT SECTION (background B) */}
+      {/* ABOUT SECTION */}
       <section ref={aboutRef} id="about" className="section sectionAbout">
         <div className="container">
           <About />
@@ -80,7 +125,7 @@ export default function App() {
       </section>
 
       <footer className="footerNote">
-        UI-only build ✦ Next: animations + real analysis + charts + voice coach
+        OfferShield Equity ✦ Powered by FastAPI, Gemini, and ElevenLabs
       </footer>
     </div>
   );
