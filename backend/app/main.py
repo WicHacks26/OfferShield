@@ -1,75 +1,36 @@
 from fastapi import FastAPI
 from app.schemas import OfferInput
 from app.utils.finance_calculator import (
-    calculate_fica,
-    calculate_total_comp,
-    calculate_emergency_needed,
-    calculate_risk_score
+    calculate_fica, calculate_federal_tax, 
+    calculate_state_tax, calculate_risk_score
 )
 from app.services.gemini_service import generate_financial_analysis
-import json
 
 app = FastAPI()
 
-
 @app.post("/analyze-offer")
-def analyze_offer(data: OfferInput):
-
-    total_comp = calculate_total_comp(
-        data.base_salary,
-        data.bonus,
-        data.equity
-    )
-
-    fica = calculate_fica(data.base_salary)
-
-    emergency_needed = calculate_emergency_needed(data.monthly_expenses)
-
+async def analyze_offer(data: OfferInput):
+    # 1. Math
+    total_comp = data.base_salary + data.bonus + data.equity
+    emergency_goal = data.monthly_expenses * data.emergency_months
+    
+    # 2. 2026 Taxes (Standard Deduction $16,100)
+    fed_tax = calculate_federal_tax(max(0, total_comp - 16100))
+    state_tax = calculate_state_tax(data.location, total_comp)
+    fica_tax = calculate_fica(data.base_salary)
+    
+    # 3. Risk Calculation
     risk_score = calculate_risk_score(
-        data.loan,
-        total_comp,
-        data.savings,
-        emergency_needed,
-        data.equity_gap,
-        data.career_break_years
+        data.loan, total_comp, data.savings, emergency_goal, data.equity_gap
     )
 
-    gemini_raw = generate_financial_analysis(
-        data,
-        total_comp,
-        risk_score
-    )
-
-    gemini_data = json.loads(gemini_raw)
-
-    total_tax = (
-        gemini_data["federal_tax"]
-        + gemini_data["state_tax"]
-        + fica
-    )
-
-    annual_net = total_comp - total_tax
-    monthly_net = annual_net / 12
-
-    risk_level = (
-        "Low" if risk_score < 40
-        else "Medium" if risk_score < 70
-        else "High"
+    # 4. AI Insight (Pass the risk_score VARIABLE, not from data object)
+    gemini_data = generate_financial_analysis(
+        data, total_comp, fed_tax, state_tax, fica_tax, risk_score
     )
 
     return {
-        "financial_summary": {
-            "total_compensation": total_comp,
-            "annual_net_estimate": annual_net,
-            "monthly_net_estimate": monthly_net,
-            "fica": fica,
-            "total_tax": total_tax,
-            "risk_score": risk_score,
-            "risk_level": risk_level
-        },
-        "equity_analysis": gemini_data["equity_analysis"],
-        "career_analysis": gemini_data["career_analysis"],
-        "advice": gemini_data["advice"],
-        "negotiation_script": gemini_data["negotiation_script"],
-        "voice_script": gemini_data["voice_script"]
+        "summary": {"total_comp": total_comp, "risk_score": risk_score},
+        "taxes": {"federal": fed_tax, "state": state_tax, "fica": fica_tax},
+        "ai_insights": gemini_data
     }
